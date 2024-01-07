@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GreenFarmWebAPIProject.Models;
 using GreenFarmWebAPIProject.Models.Data;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GreenFarmWebAPIProject.Controllers
 {
@@ -23,6 +24,7 @@ namespace GreenFarmWebAPIProject.Controllers
 
         // GET: api/Categories
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
         {
           if (_db.Categories == null)
@@ -32,8 +34,9 @@ namespace GreenFarmWebAPIProject.Controllers
             return await _db.Categories.ToListAsync();
         }
 
-        // GET: api/Categories/5
+        
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<ActionResult<Category>> GetCategory(int id)
         {
           if (_db.Categories == null)
