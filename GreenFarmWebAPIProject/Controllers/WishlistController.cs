@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using GreenFarmWebAPIProject.Models;
+using GreenFarmWebAPIProject.Models.Data;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.CodeAnalysis;
+
+namespace GreenFarmWebAPIProject.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class WishlistController : ControllerBase
+    {
+        private readonly ApplicationDbContext db;
+
+        public WishlistController(ApplicationDbContext context)
+        {
+            db = context;
+        }
+
+        // GET: api/Wishlist
+        [HttpGet]
+        [Authorize]
+        public async Task<ActionResult<List<Product>>> GetWishlistProductsByUserId()
+        {
+
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            int userId = db.Users.FirstOrDefault(x => x.Email == userEmail).Id;
+
+            int wishlistId = Convert.ToInt32(db.Wishlists.FirstOrDefault(x => x.UserId == userId)?.Id);
+
+            if (wishlistId == 0)
+            {
+                return NotFound("Wishlist not found for the user");
+            }
+
+            var productIds = db.WishlistProducts.Where(wp => wp.WishlistId == wishlistId).Select(wp => wp.ProductId).ToList();
+
+            var products = await db.Products.Where(p => productIds.Contains(p.Id)).ToListAsync();
+
+            if (products == null || !products.Any())
+            {
+                return NotFound("No products found in the wishlist");
+            }
+
+            return Ok(products);
+        }
+
+        // POST: api/Wishlist
+        [HttpPost]
+        public async Task<bool> AddWishlistProduct(List<WishlistProduct> wishlistProducts)
+        {
+            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            int userId = db.Users.FirstOrDefault(x => x.Email == userEmail).Id;
+
+            int wishlistId = Convert.ToInt32(db.Wishlists.FirstOrDefault(x => x.UserId == userId)?.Id);
+
+            if (wishlistId == 0)
+            {
+                Wishlist entity = new Wishlist()
+                {
+                    UserId = userId
+                };
+
+                db.Wishlists.Add(entity);
+
+                for (int i = 0; i < wishlistProducts.Count; i++)
+                {
+                    wishlistProducts[i].WishlistId = entity.Id;
+                }
+
+                db.WishlistProducts.AddRange(wishlistProducts);
+                db.SaveChanges();
+                return true;
+            }
+            else
+            {
+                for (int i = 0; i < wishlistProducts.Count; i++)
+                {
+                    wishlistProducts[i].WishlistId = wishlistId;
+                }
+
+                db.WishlistProducts.AddRange(wishlistProducts);
+                db.SaveChanges();
+                return true;
+            }
+
+        }
+
+        // DELETE: api/Wishlist/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWishlistProduct(int id)
+        {
+            if (db.WishlistProducts == null)
+            {
+                return NotFound();
+            }
+            var wishlistProduct = await db.WishlistProducts.FindAsync(id);
+            if (wishlistProduct == null)
+            {
+                return NotFound();
+            }
+
+            db.WishlistProducts.Remove(wishlistProduct);
+            await db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool WishlistProductExists(int id)
+        {
+            return (db.WishlistProducts?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+    }
+}

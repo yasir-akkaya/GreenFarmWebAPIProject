@@ -12,6 +12,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("MyAllowSpecificOrigins",
+    policy =>
+    {
+        policy.AllowAnyOrigin()// React uygulamanýzýn çalýþtýðý adres
+.AllowAnyHeader()
+.AllowAnyMethod();
+    });
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -43,15 +53,18 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = false,
         ValidateIssuerSigningKey = true
     };
-});
-builder.Services.AddAuthentication();
+    // ConfigureServices metodunda daðýtýlmýþ önbelleði ekleyin
+  
 
+});
 
 ////////////////////////////////////////////////////////////
-
+//builder.Services.AddSession();
 var app = builder.Build();
 app.UseAuthentication();
 app.UseAuthorization();
+//app.UseSession();
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

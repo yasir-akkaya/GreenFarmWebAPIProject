@@ -21,7 +21,7 @@ namespace GreenFarmWebAPIProject.Models.Data
                 .HasOne(p => p.Category)
                 .WithMany(c => c.Products)
                 .HasForeignKey(p => p.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);  
+                .OnDelete(DeleteBehavior.Restrict);
 
             // OrderProducts tablosundaki OrderId ile Orders tablosundaki Id arasında FK ilişkisi
             modelBuilder.Entity<OrderProduct>()

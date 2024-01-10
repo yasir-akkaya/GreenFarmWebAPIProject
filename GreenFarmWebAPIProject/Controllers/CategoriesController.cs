@@ -56,7 +56,7 @@ namespace GreenFarmWebAPIProject.Controllers
         // PUT: api/Categories/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCategory(int id, Category category)
+        public async Task<IActionResult> UpdateCategory(int id, Category category)
         {
             if (id != category.Id)
             {
@@ -85,9 +85,8 @@ namespace GreenFarmWebAPIProject.Controllers
         }
 
         // POST: api/Categories
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Category>> PostCategory(Category category)
+        public async Task<ActionResult<Category>> AddCategory(Category category)
         {
           if (_db.Categories == null)
           {
