@@ -55,7 +55,7 @@ namespace GreenFarmWebAPIProject.Controllers
 
         // POST: api/Wishlist
         [HttpPost]
-        public async Task<bool> AddWishlistProduct(List<WishlistProduct> wishlistProducts)
+        public async Task<bool> AddWishlistProduct([FromBody] WishlistProductRequestBody request)
         {
             var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
 
@@ -71,24 +71,26 @@ namespace GreenFarmWebAPIProject.Controllers
                 };
 
                 db.Wishlists.Add(entity);
-
-                for (int i = 0; i < wishlistProducts.Count; i++)
+                db.SaveChanges();
+                WishlistProduct wp = new WishlistProduct()
                 {
-                    wishlistProducts[i].WishlistId = entity.Id;
-                }
-
-                db.WishlistProducts.AddRange(wishlistProducts);
+                    ProductId = request.ProductId,
+                    WishlistId = request.WishlistId
+                };
+                
+                db.WishlistProducts.Add(wp);
                 db.SaveChanges();
                 return true;
             }
             else
             {
-                for (int i = 0; i < wishlistProducts.Count; i++)
+                WishlistProduct wp = new WishlistProduct()
                 {
-                    wishlistProducts[i].WishlistId = wishlistId;
-                }
+                    ProductId = request.ProductId,
+                    WishlistId = wishlistId
+                };
 
-                db.WishlistProducts.AddRange(wishlistProducts);
+                db.WishlistProducts.Add(wp);
                 db.SaveChanges();
                 return true;
             }
@@ -103,21 +105,21 @@ namespace GreenFarmWebAPIProject.Controllers
             {
                 return NotFound();
             }
-            var wishlistProduct = await db.WishlistProducts.FindAsync(id);
-            if (wishlistProduct == null)
+            var wishlistProduct = await db.WishlistProducts.Where(x => x.WishlistId == id).ToListAsync();
+            if (wishlistProduct.Count == 0)
             {
                 return NotFound();
             }
+            else
+            {
 
-            db.WishlistProducts.Remove(wishlistProduct);
-            await db.SaveChangesAsync();
+                db.WishlistProducts.RemoveRange(wishlistProduct);
+                db.Wishlists.Remove(db.Wishlists.Find(id));
+                await db.SaveChangesAsync();
+            }
 
             return NoContent();
         }
 
-        private bool WishlistProductExists(int id)
-        {
-            return (db.WishlistProducts?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
     }
 }
