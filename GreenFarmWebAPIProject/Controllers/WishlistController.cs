@@ -94,9 +94,7 @@ namespace GreenFarmWebAPIProject.Controllers
                 db.SaveChanges();
                 return true;
             }
-
         }
-
         // DELETE: api/Wishlist/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteWishlistProduct(int id)
