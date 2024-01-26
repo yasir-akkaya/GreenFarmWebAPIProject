@@ -8,7 +8,7 @@
       "sslPort": 44311
     }
   },
-  "profiles": {
+  "profiles": { 
     "GreenFarmWebAPIProject": {
       "commandName": "Project",
       "dotnetRunMessages": true,
